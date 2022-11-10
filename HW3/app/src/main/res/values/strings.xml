@@ -1,0 +1,12 @@
+<resources>
+    <string name="app_name">Dress Adviser - 2</string>
+    <string name="suggest_dress">Suggest Dress</string>
+    <string name="suggestion">No type selected</string>
+
+    <string-array name="dress_types">
+        <item>Formal - Male</item>
+        <item>Formal - Female</item>
+        <item>Casual - Male</item>
+        <item>Casual - Female</item>
+    </string-array>
+</resources>
