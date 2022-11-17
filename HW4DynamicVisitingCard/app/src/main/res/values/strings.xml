@@ -1,0 +1,12 @@
+<resources>
+    <string name="app_name">HW 4 - Dynamic Visiting Card</string>
+    <string name="name">Asir Mosaddek Sakib</string>
+    <string name="designation">Software Engineer</string>
+    <string name="mobile_number">+880 1731 283306</string>
+    <string name="email_id">sakib.rangpur@gmail.com</string>
+    <string name="orbitax_bangladesh_limited">Orbitax Bangladesh Limited</string>
+    <string name="address_line">Level 8, RAOWA Complex, Mohakhali, Dhaka</string>
+    <string name="email">Email</string>
+    <string name="address">address</string>
+    <string name="call">Call</string>
+</resources>
