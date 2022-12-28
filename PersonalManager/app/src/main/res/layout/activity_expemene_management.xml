@@ -6,4 +6,28 @@
     android:layout_height="match_parent"
     tools:context=".ExpenseManagementActivity">
 
+    <Button
+        android:id="@+id/btnAddAmount"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Add Amount"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
+
+    <Button
+        android:id="@+id/btnAddExpense"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Add Expense"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toStartOf="@+id/btnHistory"
+        app:layout_constraintStart_toEndOf="@+id/btnAddAmount" />
+
+    <Button
+        android:id="@+id/btnHistory"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="History"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
 </androidx.constraintlayout.widget.ConstraintLayout>
