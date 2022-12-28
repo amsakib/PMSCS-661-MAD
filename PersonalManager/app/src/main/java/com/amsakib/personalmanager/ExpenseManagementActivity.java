@@ -1,6 +1,7 @@
 package com.amsakib.personalmanager;
 
 import android.content.Context;
+import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.text.InputType;
@@ -200,7 +201,10 @@ public class ExpenseManagementActivity extends AppCompatActivity {
             dialog.show();
         });
 
-
+        btnHistory.setOnClickListener(view -> {
+            Intent intent = new Intent(ExpenseManagementActivity.this, ExpenseHistoryActivity.class);
+            startActivity(intent);
+        });
 
     }
 
@@ -210,7 +214,7 @@ public class ExpenseManagementActivity extends AppCompatActivity {
 
         TextView monthName = findViewById(R.id.monthName);
         Calendar calendar = Calendar.getInstance();
-        monthName.setText(new SimpleDateFormat("MMMM, YYYY").format(calendar.getTime()));
+        monthName.setText(new SimpleDateFormat("MMMM, yyyy").format(calendar.getTime()));
 
         BalanceSummary summary = expenseManagementService.getBalanceSummary(calendar);
 

@@ -12,10 +12,13 @@ import com.amsakib.personalmanager.models.BalanceSummary;
 import com.amsakib.personalmanager.models.CategorySummary;
 import com.amsakib.personalmanager.models.Expense;
 import com.amsakib.personalmanager.models.ExpenseCategory;
+import com.amsakib.personalmanager.models.ExpenseHistoryItem;
 import com.amsakib.personalmanager.models.Income;
 
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.List;
 
@@ -167,5 +170,43 @@ public class ExpenseManagementService {
             cursor.moveToNext();
         }
         return summaries;
+    }
+
+    public List<ExpenseHistoryItem> getHistoryItems() {
+        SQLiteDatabase db = _dbHelper.getReadableDatabase();
+        String query = "SELECT name, amount, date FROM Expense INNER JOIN ExpenseCategory ON ExpenseCategory.id = Expense.category_id ORDER BY date DESC" ;
+        Cursor cursor = db.rawQuery(query, null);
+        cursor.moveToFirst();
+
+        List<ExpenseHistoryItem> historyItems = new ArrayList<>();
+
+        while(!cursor.isAfterLast()) {
+            ExpenseHistoryItem item = new ExpenseHistoryItem();
+            item.setIncome(false);
+            item.setAmount(cursor.getDouble(1));
+            item.setDate(new Date(cursor.getLong(2)));
+            item.setCategory(cursor.getString(0));
+            historyItems.add(item);
+            cursor.moveToNext();
+        }
+
+        query = "SELECT amount, date, source FROM Income ORDER BY date DESC";
+        cursor = db.rawQuery(query, null);
+        cursor.moveToFirst();
+        while (!cursor.isAfterLast()) {
+            ExpenseHistoryItem item = new ExpenseHistoryItem();
+            item.setIncome(true);
+            item.setAmount(cursor.getDouble(0));
+            item.setDate(new Date(cursor.getLong(1)));
+            item.setCategory(cursor.getString(2));
+            historyItems.add(item);
+            cursor.moveToNext();
+        }
+
+        // sort history items by date
+        Collections.sort(historyItems);
+        Collections.reverse(historyItems);
+
+        return historyItems;
     }
 }

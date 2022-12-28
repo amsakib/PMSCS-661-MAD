@@ -10,6 +10,9 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.PersonalManager">
         <activity
+            android:name=".ExpenseHistoryActivity"
+            android:exported="false" />
+        <activity
             android:name=".JournalActivity"
             android:exported="false" />
         <activity
