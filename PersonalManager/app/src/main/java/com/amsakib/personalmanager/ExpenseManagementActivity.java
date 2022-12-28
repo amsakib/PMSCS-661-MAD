@@ -1,12 +1,16 @@
 package com.amsakib.personalmanager;
 
+import android.content.Context;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.text.InputType;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.LinearLayout;
 import android.widget.Spinner;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AlertDialog;
@@ -14,10 +18,19 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.amsakib.personalmanager.adapters.ExpenseCategoryAdapter;
 import com.amsakib.personalmanager.database.ExpenseManagementService;
+import com.amsakib.personalmanager.models.BalanceSummary;
+import com.amsakib.personalmanager.models.CategorySummary;
 import com.amsakib.personalmanager.models.Expense;
 import com.amsakib.personalmanager.models.ExpenseCategory;
 import com.amsakib.personalmanager.models.Income;
 
+import org.eazegraph.lib.charts.PieChart;
+import org.eazegraph.lib.models.PieModel;
+
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
@@ -28,7 +41,7 @@ public class ExpenseManagementActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_expemene_management);
+        setContentView(R.layout.activity_expense_management);
 
         expenseManagementService = new ExpenseManagementService(this);
 
@@ -63,6 +76,7 @@ public class ExpenseManagementActivity extends AppCompatActivity {
                     }
 
                     addIncome(beginningBalance, "Beginning Balance");
+                    updateSummaryView();
                     //Dismiss once everything is OK.
                     dialog.dismiss();
 
@@ -71,9 +85,8 @@ public class ExpenseManagementActivity extends AppCompatActivity {
             dialog.show();
 
         } else {
-            // we do have available income
-            // current month summary
 
+            updateSummaryView();
 
         }
 
@@ -122,6 +135,7 @@ public class ExpenseManagementActivity extends AppCompatActivity {
                     }
 
                     addIncome(amount, dialogSourceText);
+                    updateSummaryView();
                     dialog.dismiss();
                 });
             });
@@ -179,7 +193,7 @@ public class ExpenseManagementActivity extends AppCompatActivity {
                     expense.setDate(new Date());
 
                     expenseManagementService.addExpense(expense);
-
+                    updateSummaryView();
                     dialog.dismiss();
                 });
             });
@@ -188,6 +202,64 @@ public class ExpenseManagementActivity extends AppCompatActivity {
 
 
 
+    }
+
+    private void updateSummaryView() {
+        LinearLayout layout = findViewById(R.id.visibleArea);
+        layout.setVisibility(View.VISIBLE);
+
+        TextView monthName = findViewById(R.id.monthName);
+        Calendar calendar = Calendar.getInstance();
+        monthName.setText(new SimpleDateFormat("MMMM, YYYY").format(calendar.getTime()));
+
+        BalanceSummary summary = expenseManagementService.getBalanceSummary(calendar);
+
+        TextView previousBalance = findViewById(R.id.previousBalance);
+        TextView totalIncome = findViewById(R.id.totalIncome);
+        TextView expense = findViewById(R.id.totalExpense);
+        TextView balance = findViewById(R.id.balance);
+
+        previousBalance.setText(String.format("%.2f", summary.getPreviousBalance()));
+        totalIncome.setText(String.format("%.2f", summary.getTotalIncome()));
+        expense.setText(String.format("%.2f", summary.getTotalExpense()));
+        balance.setText(String.format("%.2f", summary.getBalance()));
+
+
+        List<CategorySummary> summaries = expenseManagementService.getExpenseSummary(calendar);
+
+        drawChart(summaries);
+    }
+
+    private void drawChart(List<CategorySummary> summaries) {
+        List<String> colors = new ArrayList<>(Arrays.asList("#FFA726", "#66BB6A", "#EF5350", "#29B6F6", "#E91E63", "#FFBB86FC", "#FF000000", "#FF018786"));
+        PieChart pieChart = findViewById(R.id.piechart);
+        pieChart.clearChart();
+        LinearLayout pieChartDetails = findViewById(R.id.pieChartDetails);
+        pieChartDetails.removeAllViews();
+
+        for(int i = 0; i< summaries.size(); i++) {
+            CategorySummary categorySummary = summaries.get(i);
+            pieChart.addPieSlice(
+                    new PieModel(
+                            categorySummary.getName(),
+                            (float) categorySummary.getAmount(),
+                            Color.parseColor(colors.get(i % summaries.size()))));
+
+            Context context = getApplicationContext();
+
+            LayoutInflater inflater = LayoutInflater.from(context);
+            View view = inflater.inflate(R.layout.pie_chart_details_item, null);
+            View colorView = view.findViewById(R.id.color);
+            TextView titleView = view.findViewById(R.id.title);
+
+            colorView.setBackgroundColor(Color.parseColor(colors.get(i % summaries.size())));
+            titleView.setText(String.format("%s - %.2f", categorySummary.getName(), categorySummary.getAmount()));
+
+            pieChartDetails.addView(view);
+        }
+
+        // To animate the pie chart
+        pieChart.startAnimation();
     }
 
     private void addIncome(double amount, String dialogSourceText) {

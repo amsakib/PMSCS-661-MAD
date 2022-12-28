@@ -56,7 +56,6 @@ public class DatabaseHelper extends SQLiteOpenHelper {
 
         db.execSQL("CREATE TABLE Expense (id INTEGER PRIMARY KEY AUTOINCREMENT," +
                 "category_id INTEGER," +
-                "amoount REAL," +
                 "date INTEGER," +
                 "source TEXT," +
                 "FOREIGN KEY(category_id) REFERENCES ExpenseCategory(id))");

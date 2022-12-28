@@ -6,12 +6,16 @@ import android.content.Context;
 import android.database.Cursor;
 import android.database.DatabaseUtils;
 import android.database.sqlite.SQLiteDatabase;
+import android.util.Log;
 
+import com.amsakib.personalmanager.models.BalanceSummary;
+import com.amsakib.personalmanager.models.CategorySummary;
 import com.amsakib.personalmanager.models.Expense;
 import com.amsakib.personalmanager.models.ExpenseCategory;
 import com.amsakib.personalmanager.models.Income;
 
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
@@ -88,5 +92,80 @@ public class ExpenseManagementService {
         contentValues.put(DatabaseHelper.TABLE_EXPENSE.COL_CATEGORY_ID, expense.getCategoryId());
 
         db.insert(DatabaseHelper.TABLE_EXPENSE.NAME, null, contentValues);
+    }
+
+    public BalanceSummary getBalanceSummary(Calendar calendar) {
+        BalanceSummary summary = new BalanceSummary();
+
+        SQLiteDatabase db = _dbHelper.getReadableDatabase();
+
+        calendar.set(Calendar.DAY_OF_MONTH, 1);
+
+
+        Log.d("ExpenseManagement", calendar.getTime() + "");
+
+        // 1. get sum of all income amount dated before this month
+        String query = "SELECT SUM(amount) from " + DatabaseHelper.TABLE_INCOME.NAME + " WHERE date < " + calendar.getTime().getTime() ;
+        double totalPreviousIncome = getScalerValue(db, query);
+
+        Log.d("ExpenseManagement", "totalPreviousIncome " + totalPreviousIncome);
+
+        // 2. get sum of all expense amount dated dated before this month
+        query = "SELECT SUM(amount) from " + DatabaseHelper.TABLE_EXPENSE.NAME + " WHERE date < " + calendar.getTime().getTime();
+        double totalPreviousExpense = getScalerValue(db, query);
+
+        Log.d("ExpenseManagement", "totalPreviousExpense " + totalPreviousExpense);
+
+
+        // 3. get sum of all income amount of this month
+        query = "SELECT SUM(amount) from " + DatabaseHelper.TABLE_INCOME.NAME + " WHERE date >=" + calendar.getTime().getTime() ;
+        double totalCurrentIncome = getScalerValue(db, query);
+
+        Log.d("ExpenseManagement", "totalCurrentIncome " + totalCurrentIncome);
+        // 4. get sum of all expense amount of this month
+        query = "SELECT SUM(amount) from " + DatabaseHelper.TABLE_EXPENSE.NAME + " WHERE date >= " + calendar.getTime().getTime() ;
+        double totalCurrentExpense = getScalerValue(db, query);
+        Log.d("ExpenseManagement", "totalCurrentExpense " + totalCurrentExpense);
+
+        // 5. do the calculation
+        double previousBalance = totalPreviousIncome - totalPreviousExpense;
+        summary.setPreviousBalance( previousBalance );
+        summary.setTotalIncome(totalCurrentIncome);
+        summary.setTotalExpense(totalCurrentExpense);
+        summary.setBalance(previousBalance - totalCurrentExpense + totalCurrentIncome);
+
+        return summary;
+    }
+
+    private double getScalerValue(SQLiteDatabase db, String query) {
+        Cursor cursor = db.rawQuery(query, null);
+        Log.d("ExpenseManagement", "Query:  " + query);
+        Log.d("ExpenseManagement", "IsAfterLast:  " + cursor.isAfterLast());
+
+        cursor.moveToFirst();
+        double totalPreviousIncome = 0;
+        if(!cursor.isAfterLast()) {
+            totalPreviousIncome = cursor.getDouble(0);
+        }
+        return totalPreviousIncome;
+    }
+
+    public List<CategorySummary> getExpenseSummary(Calendar calendar) {
+        calendar.set(Calendar.DAY_OF_MONTH, 1);
+        SQLiteDatabase db = _dbHelper.getReadableDatabase();
+
+        String query = "SELECT name, sum(amount) as sum FROM Expense INNER JOIN ExpenseCategory ON ExpenseCategory.id = Expense.category_id WHERE date > "+ calendar.getTime().getTime() +" GROUP BY category_id";
+        Cursor cursor = db.rawQuery(query, null);
+        cursor.moveToFirst();
+
+        List<CategorySummary> summaries = new ArrayList<>();
+        while(!cursor.isAfterLast()) {
+            CategorySummary summary = new CategorySummary();
+            summary.setName(cursor.getString(0));
+            summary.setAmount(cursor.getDouble(1));
+            summaries.add(summary);
+            cursor.moveToNext();
+        }
+        return summaries;
     }
 }
