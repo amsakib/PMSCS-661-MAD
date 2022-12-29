@@ -55,6 +55,7 @@ public class DatabaseHelper extends SQLiteOpenHelper {
         insetExpenseCategory(db, "Others");
 
         db.execSQL("CREATE TABLE Expense (id INTEGER PRIMARY KEY AUTOINCREMENT," +
+                "amount REAL, " +
                 "category_id INTEGER," +
                 "date INTEGER," +
                 "source TEXT," +
